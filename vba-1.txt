@@ -1,0 +1,171 @@
+Sub main()
+Call Add_column
+Call Get_docNumber
+Call remove_date_pst
+Call remove_date_pdt
+Call text_date
+Call days_pending
+Call filtered_submitted
+Call select_greatest_days
+Call filter_awaiting
+Call selectVisibleRange
+Call format_result
+End Sub
+
+Sub Add_column() 'Add a column at A1
+Range("A:A").EntireColumn.Insert
+End Sub
+
+
+Sub Get_docNumber() 'Loop through entire B1 column to get each doc number
+
+l_row = ActiveSheet.Cells.Find(What:="*", _
+                            After:=Range("A1"), _
+                            LookAt:=xlPart, _
+                            LookIn:=xlFormulas, _
+                            SearchOrder:=xlByRows, _
+                            SearchDirection:=xlPrevious, _
+                            MatchCase:=False).Row
+Dim myRow As Integer
+myRow = 1
+For c = myRow To l_row
+    If Cells(c, "B").Value = "Document Number" Then
+        docNum = Cells(c + 1, "B")
+        Range("A" & c & ":A" & l_row).Value = docNum
+        
+        
+    End If
+Next c
+Range("A:A").Columns.AutoFit
+
+End Sub
+
+Sub remove_date_pst()  'Remove "PST" on the date column
+last_row = ActiveSheet.Cells.Find(What:="*", _
+                            SearchOrder:=xlByRows, _
+                            SearchDirection:=xlPrevious).Row
+
+For r = 2 To last_row
+Dim myDate As String
+myDate = Cells(r, 6).Value
+
+Dim newDate As String
+newDate = Replace(myDate, "PST", "")
+Cells(r, 6).Value = newDate
+
+
+
+Next
+End Sub
+
+Sub remove_date_pdt()  'Remove "PDT" on the date column
+last_row = ActiveSheet.Cells.Find(What:="*", _
+                            SearchOrder:=xlByRows, _
+                            SearchDirection:=xlPrevious).Row
+
+For r = 2 To last_row
+Dim myDate As String
+myDate = Cells(r, 6).Value
+
+
+Dim newDate2 As String
+newDate2 = Replace(myDate, "PDT", "")
+Cells(r, 6).Value = newDate2
+
+Next
+End Sub
+
+
+Sub text_date()
+'
+' text_date Macro
+'
+
+'
+    Columns("F:F").Select
+    Selection.TextToColumns Destination:=Range("F1"), DataType:=xlDelimited, _
+        TextQualifier:=xlDoubleQuote, ConsecutiveDelimiter:=False, Tab:=False, _
+        Semicolon:=False, Comma:=False, Space:=False, Other:=False, FieldInfo _
+        :=Array(1, 5), TrailingMinusNumbers:=True
+    Selection.NumberFormat = "yyyy-mm-dd hh:mm:ss AM/PM"
+    Range("F2").Select
+End Sub
+
+Sub days_pending()   'Find the pending days
+last_row = Cells(Rows.Count, 6).End(xlUp).Row
+For d = 2 To last_row
+my_date = Cells(d, 6).Value
+On Error Resume Next
+date_diff = DateDiff("d", my_date, Now)
+Cells(d, 7).Value = date_diff
+Columns(7).NumberFormat = "0"
+Next
+
+End Sub
+
+Sub filtered_submitted() 'Remove all the pending days which aren't since submission day
+
+last_row = ActiveSheet.Cells(Rows.Count, 1).End(xlUp).Row
+For i = 2 To last_row
+If Cells(i, 3).Value <> "Submitted" Then
+    Cells(i, 7).Value = ""
+End If
+Next
+End Sub
+
+Sub select_greatest_days() 'Select the greatest pending day for each doc number
+last_row = ActiveSheet.Cells(Rows.Count, 1).End(xlUp).Row
+
+first_row = 2
+For i = 2 To last_row
+If Cells(i, 1).Value <> Cells(i + 1, 1).Value Then
+    end_row = i
+    
+    For s = first_row To end_row
+    If Cells(s, 5).Value = "Awaiting Approval" Then
+        ActiveSheet.Cells(s, 8).Value = Application.WorksheetFunction.Max _
+        (ActiveSheet.Range("G" & first_row & ":G" & end_row))
+    End If
+    Next
+    
+    first_row = i + 1
+    
+
+End If
+Next
+End Sub
+
+Sub filter_awaiting()
+'
+' filter_awaiting Macro
+'
+
+'
+    Rows("6:6").Select
+    Selection.AutoFilter
+    ActiveSheet.Range("$A$6:$H$87").AutoFilter Field:=5, Criteria1:= _
+        "Awaiting Approval"
+    Range("H6").Select
+    ActiveCell.FormulaR1C1 = "Days Pending"
+    Range("H12").Select
+End Sub
+
+Sub selectVisibleRange()  'Copy the filtered result to another sheet
+
+    Dim DbExtract, DuplicateRecords As Worksheet
+    Set DbExtract = ThisWorkbook.Sheets("Sheet1")
+    Set DuplicateRecords = ThisWorkbook.Sheets("Result")
+
+    DbExtract.Range("A1:BF9999").SpecialCells(xlCellTypeVisible).Copy
+    DuplicateRecords.Cells(1, 1).PasteSpecial
+
+End Sub
+
+Sub format_result()  'format the result
+Sheets("Result").Range("A:H").Columns.AutoFit
+Sheets("Result").Rows("1:5").Delete
+Sheets("Result").Cells(1, 1).ClearContents
+Sheets("Result").Range("F:G").Delete Shift:=xlToLeft
+End Sub
+
+
