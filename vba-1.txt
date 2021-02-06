@@ -17,8 +17,7 @@ Range("A:A").EntireColumn.Insert
 End Sub
 
 
-Sub Get_docNumber() 'Loop through entire B1 column to get each doc number
-
+Sub Get_docNumber() 'Loop through the entire B1 column to get each doc number and paste them in column A accordingly
 l_row = ActiveSheet.Cells.Find(What:="*", _
                             After:=Range("A1"), _
                             LookAt:=xlPart, _
@@ -31,13 +30,11 @@ myRow = 1
 For c = myRow To l_row
     If Cells(c, "B").Value = "Document Number" Then
         docNum = Cells(c + 1, "B")
-        Range("A" & c & ":A" & l_row).Value = docNum
-        
+        Range("A" & c & ":A" & l_row).Value = docNum 
         
     End If
 Next c
 Range("A:A").Columns.AutoFit
-
 End Sub
 
 Sub remove_date_pst()  'Remove "PST" on the date column
@@ -52,9 +49,6 @@ myDate = Cells(r, 6).Value
 Dim newDate As String
 newDate = Replace(myDate, "PST", "")
 Cells(r, 6).Value = newDate
-
-
-
 Next
 End Sub
 
@@ -76,7 +70,7 @@ Next
 End Sub
 
 
-Sub text_date()
+Sub text_date() 'Convert the values in column F; from text format to date format
 '
 ' text_date Macro
 '
@@ -91,7 +85,7 @@ Sub text_date()
     Range("F2").Select
 End Sub
 
-Sub days_pending()   'Find the pending days
+Sub days_pending()   'For each doc number, find the pending days (the difference between "Local Client Time" and Now)
 last_row = Cells(Rows.Count, 6).End(xlUp).Row
 For d = 2 To last_row
 my_date = Cells(d, 6).Value
@@ -100,10 +94,9 @@ date_diff = DateDiff("d", my_date, Now)
 Cells(d, 7).Value = date_diff
 Columns(7).NumberFormat = "0"
 Next
-
 End Sub
 
-Sub filtered_submitted() 'Remove all the pending days which aren't since submission day
+Sub filtered_submitted() 'Remove all the pending days which aren't in the same row as the cell "Submitted"
 
 last_row = ActiveSheet.Cells(Rows.Count, 1).End(xlUp).Row
 For i = 2 To last_row
@@ -135,7 +128,7 @@ End If
 Next
 End Sub
 
-Sub filter_awaiting()
+Sub filter_awaiting()  'Filter to get only "Awaiting Approval"
 '
 ' filter_awaiting Macro
 '
@@ -150,7 +143,7 @@ Sub filter_awaiting()
     Range("H12").Select
 End Sub
 
-Sub selectVisibleRange()  'Copy the filtered result to another sheet
+Sub selectVisibleRange()  'Copy the filtered result to another sheet "Desired Result"
 
     Dim DbExtract, DuplicateRecords As Worksheet
     Set DbExtract = ThisWorkbook.Sheets("Sheet1")
@@ -158,7 +151,6 @@ Sub selectVisibleRange()  'Copy the filtered result to another sheet
 
     DbExtract.Range("A1:BF9999").SpecialCells(xlCellTypeVisible).Copy
     DuplicateRecords.Cells(1, 1).PasteSpecial
-
 End Sub
 
 Sub format_result()  'format the result
